@@ -3,6 +3,20 @@ from django.db import models
 from core import settings
 
 class Flight(models.Model):
+    """Represents a scheduled flight.
+    
+    Attributes:
+        flight_number (str): Unique flight identifier code.
+        departure_airport (ForeignKey): Originating airport.
+        destination_airport (ForeignKey): Destination airport.
+        start_datetime (DateTime): Scheduled departure time.
+        approximate_duration (Duration): Expected flight duration.
+        airplane (ForeignKey): Aircraft assigned to this flight (nullable).
+        airline (ForeignKey): Operating airline (nullable).
+        status (str): Current flight status (Scheduled, Delayed, Departed, Arrived, Cancelled).
+        terminal (str): Departure terminal code (optional).
+        gate (str): Departure gate number (optional).
+    """
     
     class Status(models.TextChoices):
         SCHEDULED = 'SCH', 'Scheduled'
@@ -26,6 +40,18 @@ class Flight(models.Model):
         return f"{self.flight_number}: {self.departure_airport.iata_code} -> {self.destination_airport.iata_code} ({self.get_status_display()})"
     
 class Ticket(models.Model):
+    """Represents a flight ticket/booking for a passenger.
+    
+    Attributes:
+        booking_reference (str): Unique 6-character booking confirmation code.
+        passenger (ForeignKey): User who booked this ticket.
+        flight (ForeignKey): Associated flight.
+        seat_number (str): Assigned seat (e.g., 12A).
+        ticket_class (str): Cabin class (Economy, Business, First Class).
+        price (Decimal): Ticket price in currency units.
+        baggage_weight (int): Allowed baggage weight in kg.
+        status (str): Ticket status (Booked, Paid, Checked-in, Cancelled).
+    """
     
     class Status(models.TextChoices):
         BOOKED = 'BOK', 'Booked'

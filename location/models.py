@@ -1,6 +1,12 @@
 from django.db import models
 
 class Country(models.Model):
+    """Represents a country.
+    
+    Attributes:
+        name (str): Unique country name.
+        code (str): Unique 2-letter ISO country code.
+    """
     
     name = models.CharField(max_length=100, unique=True)
     code = models.CharField(max_length=2, unique=True)
@@ -12,6 +18,15 @@ class Country(models.Model):
         return self.name
     
 class City(models.Model):
+    """Represents a city.
+    
+    Attributes:
+        name (str): City name.
+        country (ForeignKey): Country this city belongs to.
+        
+    Note:
+        A city name must be unique within its country.
+    """
     
     name = models.CharField(max_length=100)
     country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name='cities')
