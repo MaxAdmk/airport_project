@@ -4,7 +4,7 @@ from .views import FlightViewSet, TicketViewSet
 
 router = DefaultRouter()
 router.register(r'flights', FlightViewSet)
-router.register(r'tickets', TicketViewSet)
+router.register(r'tickets', TicketViewSet, basename='ticket')
 
 urlpatterns = [
     path('', include(router.urls)),

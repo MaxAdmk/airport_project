@@ -1,5 +1,6 @@
 from rest_framework import viewsets
-from rest_framework.permissions import AllowAny
+from core.permissions import IsAdminOrReadOnly
+from .permissions import CanViewOwnTickets, CanCreateTicket, CanManageTicket
 from .models import Flight, Ticket
 from .serializers import FlightSerializer, TicketSerializer
 
@@ -7,30 +8,37 @@ class FlightViewSet(viewsets.ModelViewSet):
     """ViewSet for Flight CRUD operations.
     
     Provides endpoints:
-    - GET /api/flight/flights/ - List all flights
-    - POST /api/flight/flights/ - Create new flight
-    - GET /api/flight/flights/{id}/ - Retrieve flight details
-    - PUT /api/flight/flights/{id}/ - Update flight
-    - DELETE /api/flight/flights/{id}/ - Delete flight
+    - GET /api/flight/flights/ - List all flights (public)
+    - POST /api/flight/flights/ - Create new flight (admins only)
+    - GET /api/flight/flights/{id}/ - Retrieve flight details (public)
+    - PUT /api/flight/flights/{id}/ - Update flight (admins only)
+    - DELETE /api/flight/flights/{id}/ - Delete flight (admins only)
     
-    TODO: Replace AllowAny with IsAuthenticated and role-based permissions once authorization is fully implemented.
+    Permission: Authenticated users can read flights. Only admins can create/update/delete.
     """
     queryset = Flight.objects.all()
     serializer_class = FlightSerializer
-    permission_classes = [AllowAny]  # TODO: Temporary - replace with IsAuthenticated once auth is implemented
+    permission_classes = [IsAdminOrReadOnly]
 
 class TicketViewSet(viewsets.ModelViewSet):
     """ViewSet for Ticket CRUD operations.
     
     Provides endpoints:
-    - GET /api/flight/tickets/ - List all tickets
-    - POST /api/flight/tickets/ - Create new ticket (booking)
-    - GET /api/flight/tickets/{id}/ - Retrieve ticket details
-    - PUT /api/flight/tickets/{id}/ - Update ticket
-    - DELETE /api/flight/tickets/{id}/ - Delete ticket (cancel)
+    - GET /api/flight/tickets/ - List user's tickets (CanViewOwnTickets)
+    - POST /api/flight/tickets/ - Create new ticket (CanCreateTicket)
+    - GET /api/flight/tickets/{id}/ - Retrieve ticket details (CanViewOwnTickets)
+    - PUT /api/flight/tickets/{id}/ - Update ticket (CanManageTicket)
+    - DELETE /api/flight/tickets/{id}/ - Delete/cancel ticket (CanManageTicket)
     
-    TODO: Replace AllowAny with IsAuthenticated and role-based permissions once authorization is fully implemented.
+    Permissions:
+    - List/Retrieve: Users see only their tickets. Admins see all.
+    - Create: Authenticated users can create tickets (serializer validates passenger is user).
+    - Update/Delete: Users can manage only their own tickets. Admins can manage all.
     """
-    queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
-    permission_classes = [AllowAny]  # TODO: Temporary - replace with IsAuthenticated once auth is implemented
+    permission_classes = [CanManageTicket, CanViewOwnTickets, CanCreateTicket]
+    
+    def get_queryset(self):
+        if self.request.user and self.request.user.role == 'admin':
+            return Ticket.objects.all()
+        return Ticket.objects.filter(passenger=self.request.user)
