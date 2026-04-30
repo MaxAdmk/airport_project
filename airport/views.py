@@ -1,7 +1,18 @@
 from rest_framework import viewsets
 from core.permissions import IsAdminOrReadOnly
 from .models import Airline, Airport, Airplane
-from .serializers import AirlineSerializer, AirportSerializer, AirplaneSerializer
+from .serializers import (
+    AirlineListSerializer,
+    AirlineDetailSerializer,
+    AirlineCreateUpdateSerializer,
+    AirportListSerializer,
+    AirportDetailSerializer,
+    AirportCreateUpdateSerializer,
+    AirplaneListSerializer,
+    AirplaneDetailSerializer,
+    AirplaneCreateUpdateSerializer,
+)
+
 
 class AirlineViewSet(viewsets.ModelViewSet):
     """ViewSet for Airline CRUD operations.
@@ -14,10 +25,19 @@ class AirlineViewSet(viewsets.ModelViewSet):
     - DELETE /api/airport/airlines/{id}/ - Delete airline (admins only)
     
     Permission: Authenticated users can read airlines. Only admins can create/update/delete.
+    Serializers vary by action: list/create/detail.
     """
     queryset = Airline.objects.all()
-    serializer_class = AirlineSerializer
     permission_classes = [IsAdminOrReadOnly]
+    
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == 'list':
+            return AirlineListSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return AirlineCreateUpdateSerializer
+        return AirlineDetailSerializer
+
 
 class AirportViewSet(viewsets.ModelViewSet):
     """ViewSet for Airport CRUD operations.
@@ -30,10 +50,19 @@ class AirportViewSet(viewsets.ModelViewSet):
     - DELETE /api/airport/airports/{id}/ - Delete airport (admins only)
     
     Permission: Authenticated users can read airports. Only admins can create/update/delete.
+    Serializers vary by action: list/create/detail.
     """
     queryset = Airport.objects.all()
-    serializer_class = AirportSerializer
     permission_classes = [IsAdminOrReadOnly]
+    
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == 'list':
+            return AirportListSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return AirportCreateUpdateSerializer
+        return AirportDetailSerializer
+
 
 class AirplaneViewSet(viewsets.ModelViewSet):
     """ViewSet for Airplane CRUD operations.
@@ -46,7 +75,15 @@ class AirplaneViewSet(viewsets.ModelViewSet):
     - DELETE /api/airport/airplanes/{id}/ - Delete airplane (admins only)
     
     Permission: Authenticated users can read airplanes. Only admins can create/update/delete.
+    Serializers vary by action: list/create/detail.
     """
     queryset = Airplane.objects.all()
-    serializer_class = AirplaneSerializer
     permission_classes = [IsAdminOrReadOnly]
+    
+    def get_serializer_class(self):
+        """Return appropriate serializer based on action."""
+        if self.action == 'list':
+            return AirplaneListSerializer
+        elif self.action in ['create', 'update', 'partial_update']:
+            return AirplaneCreateUpdateSerializer
+        return AirplaneDetailSerializer
