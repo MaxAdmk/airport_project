@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, mixins
 from core.permissions import IsAdminOrReadOnly
 from .models import Country, City
 from .serializers import (
@@ -10,24 +10,19 @@ from .serializers import (
     CityCreateUpdateSerializer,
 )
 
-class CountryViewSet(viewsets.ModelViewSet):
-    """ViewSet for Country CRUD operations.
+class CountryView(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+    ):
     
-    Provides endpoints:
-    - GET /api/location/countries/ - List all countries (public)
-    - POST /api/location/countries/ - Create new country (admins only)
-    - GET /api/location/countries/{id}/ - Retrieve country details (public)
-    - PUT /api/location/countries/{id}/ - Update country (admins only)
-    - DELETE /api/location/countries/{id}/ - Delete country (admins only)
-    
-    Permission: Authenticated users can read countries. Only admins can create/update/delete.
-    Serializers vary by action: list/create/detail.
-    """
     queryset = Country.objects.all()
     permission_classes = [IsAdminOrReadOnly]
     
     def get_serializer_class(self):
-        """Return appropriate serializer based on action."""
         if self.action == 'list':
             return CountryListSerializer
         elif self.action in ['create', 'update', 'partial_update']:

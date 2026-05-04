@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import CountryViewSet, CityViewSet
+from .views import CountryView, CityViewSet
 
 router = DefaultRouter()
 
-router.register(r'countries', CountryViewSet)
+router.register(r'countries', CountryView)
 router.register(r'cities', CityViewSet)
 
 urlpatterns = [

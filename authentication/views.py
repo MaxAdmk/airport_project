@@ -6,11 +6,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from django.contrib.auth import authenticate
 from .serializers import LoginSerializer, UserDetailSerializer
+from core.throttling import AuthenticationThrottle
 
 
 class JWTLoginView(APIView):
     permission_classes = [AllowAny]
-    
+    throttle_classes = [AuthenticationThrottle]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         

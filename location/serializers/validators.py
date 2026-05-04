@@ -10,5 +10,5 @@ def validate_country_code(value):
     """
     if not re.match(r'^[A-Z]{2}$', value):
         raise serializers.ValidationError(
-            "Country code must be exactly 2 uppercase letters (ISO 3166-1 alpha-2, e.g., US, GB)"
+            "Country code must be exactly 2 uppercase letters"
         )

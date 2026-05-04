@@ -1,5 +1,3 @@
-"""Custom validators for User app serializers."""
-
 from datetime import date
 from rest_framework import serializers
 

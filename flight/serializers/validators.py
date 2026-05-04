@@ -7,7 +7,7 @@ def validate_seat_number(value):
     """
     Validate seat number format.
     
-    Seat must be 1-3 digits followed by a capital letter (e.g., 12A, 2B, 123Z).
+    Seat must be 1-3 digits followed by a capital letter.
     """
     if not re.match(r'^\d{1,3}[A-Z]$', value):
         raise serializers.ValidationError(

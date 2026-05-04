@@ -1,5 +1,3 @@
-"""Ticket model serializers."""
-
 from rest_framework import serializers
 from ..models import Ticket
 from .validators import validate_seat_number, validate_future_datetime
@@ -7,8 +5,6 @@ from .validators import validate_seat_number, validate_future_datetime
 
 class TicketListSerializer(serializers.ModelSerializer):
     """
-    Lightweight Ticket serializer for list views.
-    
     Returns essential ticket information for browsing.
     Includes flight identification and seat/status info.
     """

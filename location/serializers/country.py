@@ -1,5 +1,3 @@
-"""Country model serializers."""
-
 from rest_framework import serializers
 from ..models import Country
 from .validators import validate_country_code
@@ -34,7 +32,7 @@ class CountryCreateUpdateSerializer(serializers.ModelSerializer):
     Country serializer for create and update operations.
     
     Validates:
-    - Country code must be exactly 2 uppercase letters (ISO 3166-1 alpha-2)
+    - Country code must be exactly 2 uppercase letters
     - Country name must be unique
     - Country code must be unique
     

@@ -1,5 +1,3 @@
-"""User model serializers."""
-
 from rest_framework import serializers
 from ..models import User
 from .validators import validate_date_of_birth

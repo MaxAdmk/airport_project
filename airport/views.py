@@ -1,4 +1,6 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
 from core.permissions import IsAdminOrReadOnly
 from .models import Airline, Airport, Airplane
 from .serializers import (
@@ -14,30 +16,66 @@ from .serializers import (
 )
 
 
-class AirlineViewSet(viewsets.ModelViewSet):
-    """ViewSet for Airline CRUD operations.
-    
-    Provides endpoints:
-    - GET /api/airport/airlines/ - List all airlines (public)
-    - POST /api/airport/airlines/ - Create new airline (admins only)
-    - GET /api/airport/airlines/{id}/ - Retrieve airline details (public)
-    - PUT /api/airport/airlines/{id}/ - Update airline (admins only)
-    - DELETE /api/airport/airlines/{id}/ - Delete airline (admins only)
-    
-    Permission: Authenticated users can read airlines. Only admins can create/update/delete.
-    Serializers vary by action: list/create/detail.
-    """
-    queryset = Airline.objects.all()
+class AirlineListCreateView(APIView):
     permission_classes = [IsAdminOrReadOnly]
     
-    def get_serializer_class(self):
-        """Return appropriate serializer based on action."""
-        if self.action == 'list':
-            return AirlineListSerializer
-        elif self.action in ['create', 'update', 'partial_update']:
-            return AirlineCreateUpdateSerializer
-        return AirlineDetailSerializer
+    def get(self, request):
+        airlines = Airline.objects.all()
+        serializer = AirlineListSerializer(airlines, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        if not request.user.is_authenticated or request.user.role != 'admin':
+            return Response({'detail': 'Only admins can create airlines.'}, status=status.HTTP_403_FORBIDDEN)
 
+        serializer = AirlineCreateUpdateSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class AirlineDetailView(APIView):
+    permission_classes = [IsAdminOrReadOnly]
+    
+    def get_object(self, pk):
+        try:
+            return Airline.objects.get(pk=pk)
+        except Airline.DoesNotExist:
+            return None
+        
+    def get(self, request, pk):
+        airline = self.get_object(pk)
+        if not airline:
+            return Response({'detail': 'Airline not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = AirlineDetailSerializer(airline)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def put(self, request, pk):
+        if not request.user.is_authenticated or request.user.role != 'admin':
+            return Response({'detail': 'Only admins can update airlines.'}, status=status.HTTP_403_FORBIDDEN)
+
+        airline=self.get_object(pk)
+        if not airline:
+            return Response({'detail': 'Airline not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = AirlineCreateUpdateSerializer(airline, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self,request, pk):
+        if not request.user.is_authenticated or request.user.role != 'admin':
+            return Response({'detail': 'Only admins can delete airlines.'}, status=status.HTTP_403_FORBIDDEN)
+
+        airline = self.get_object(pk)
+        if not airline:
+            return Response({'detail': 'Airline not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        airline.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class AirportViewSet(viewsets.ModelViewSet):
     """ViewSet for Airport CRUD operations.

@@ -1,5 +1,3 @@
-"""Flight model serializers."""
-
 from rest_framework import serializers
 from ..models import Flight
 from .validators import validate_future_datetime, validate_positive_duration
