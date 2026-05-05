@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from ..models import Ticket
-from .validators import validate_seat_number, validate_future_datetime
+from .validators import validate_seat_number_format, validate_future_datetime
 
 
 class TicketListSerializer(serializers.ModelSerializer):
@@ -82,7 +82,7 @@ class TicketCreateSerializer(serializers.ModelSerializer):
     """
     seat_number = serializers.CharField(
         max_length=10,
-        validators=[validate_seat_number]
+        validators=[validate_seat_number_format]
     )
     baggage_weight = serializers.IntegerField(
         min_value=0,
@@ -133,7 +133,7 @@ class TicketUpdateSerializer(serializers.ModelSerializer):
     """
     seat_number = serializers.CharField(
         max_length=10,
-        validators=[validate_seat_number],
+        validators=[validate_seat_number_format],
         required=False
     )
     

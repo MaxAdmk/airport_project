@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework import serializers
 
 
-def validate_seat_number(value):
+def validate_seat_number_format(value):
     """
     Validate seat number format.
     
