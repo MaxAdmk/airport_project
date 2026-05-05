@@ -1,6 +1,21 @@
 from django.db import models
+from django.utils import timezone
+import uuid
+import string
+import random
 
 from core import settings
+
+
+def generate_booking_reference():
+    """
+    Generate a unique 6-character booking reference.
+    Format: 3 uppercase letters + 3 digits
+    Example: ABC123
+    """
+    letters = ''.join(random.choices(string.ascii_uppercase, k=3))
+    digits = ''.join(random.choices(string.digits, k=3))
+    return letters + digits
 
 class Flight(models.Model):
     """Represents a scheduled flight.
@@ -39,6 +54,11 @@ class Flight(models.Model):
     def __str__(self):
         return f"{self.flight_number}: {self.departure_airport.iata_code} -> {self.destination_airport.iata_code} ({self.get_status_display()})"
     
+    @property
+    def arrival_datetime(self):
+        """Calculate estimated arrival time from departure + duration."""
+        return self.start_datetime + self.approximate_duration
+    
 class Ticket(models.Model):
     """Represents a flight ticket/booking for a passenger.
     
@@ -64,7 +84,14 @@ class Ticket(models.Model):
         BUSINESS = 'BUS', 'Business'
         FIRST = 'FIR', 'First Class'
         
-    booking_reference = models.CharField(max_length=6, unique=True)
+    booking_reference = models.CharField(
+        max_length=6,
+        unique=True,
+        default=generate_booking_reference,
+        editable=False,
+        db_index=True,
+        help_text="Auto-generated 6-character booking reference (e.g., ABC123)"
+    )
     passenger = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='tickets')
     seat_number = models.CharField(max_length=10)
