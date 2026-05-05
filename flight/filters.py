@@ -17,13 +17,13 @@ class FlightFilterSet(FilterSet):
     )
     
     departure_after = DateTimeFilter(
-        field_name='departure_time',
+        field_name='start_datetime',
         lookup_expr='gte',
         label='Departure After'
     )
     
     departure_before = DateTimeFilter(
-        field_name='departure_time',
+        field_name='start_datetime',
         lookup_expr='lte',
         label='Departure Before'
     )
@@ -33,7 +33,6 @@ class FlightFilterSet(FilterSet):
         fields = ['airline', 'status']
 
 class TicketFilterSet(FilterSet):
-    """Advanced filtering for tickets."""
     
     class Meta:
         model = Ticket
