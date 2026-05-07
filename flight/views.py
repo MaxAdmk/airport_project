@@ -1,10 +1,12 @@
-from rest_framework import viewsets, filters
+from rest_framework import mixins, viewsets, filters
+from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, RetrieveAPIView
 from core.permissions import IsAdminOrReadOnly
 from flight.filters import FlightFilterSet, TicketFilterSet
+from flight.serializers.order import OrderSerializer
 from .permissions import CanViewOwnTickets, CanCreateTicket, CanManageTicket
-from .models import Flight, Ticket
+from .models import Flight, Order, Ticket
 from .throttling import TicketBookThrottle
 from .serializers import (
     FlightListSerializer,
@@ -37,34 +39,37 @@ class FlightViewSet(viewsets.ModelViewSet):
             return FlightCreateUpdateSerializer
         return FlightDetailSerializer
 
-class TicketListCreateView(ListCreateAPIView):
-    permission_classes = [CanViewOwnTickets, CanCreateTicket]
+class TicketListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
     throttle_classes = [TicketBookThrottle]
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = TicketFilterSet
-    ordering_fields = ['created_at']
-    ordering = ['-created_at']
+    ordering_fields = ['id']
+    ordering = ['-id']
     
     def get_queryset(self):
-        if self.request.user and self.request.user.role == 'admin':
-            return Ticket.objects.select_related('flight', 'passenger')
-        return Ticket.objects.filter(passenger=self.request.user)
+        if self.request.user.role == 'admin':
+            return Ticket.objects.select_related('flight')
+        return Ticket.objects.filter(order__customer=self.request.user)
     
-    def get_serializer_class(self):
-        if self.request.method == 'POST':
-            return TicketCreateSerializer
-        return TicketListSerializer
+    serializer_class = TicketListSerializer
     
 class TicketDetailView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [CanManageTicket]
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        if self.request.user and self.request.user.role == 'admin':
-            return Ticket.objects.select_related('flight', 'passenger')
-        return Ticket.objects.filter(passenger=self.request.user)
+        if self.request.user.role == 'admin':
+            return Ticket.objects.select_related('flight')
+        return Ticket.objects.filter(order__customer=self.request.user)
     
-    def get_serializer_class(self):
-        if self.request.method in ['PUT', 'PATCH']:
-            return TicketUpdateSerializer
-        return TicketDetailSerializer
+class OrderViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(customer=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(customer=self.request.user)

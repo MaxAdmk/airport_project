@@ -26,8 +26,7 @@ class TicketListSerializer(serializers.ModelSerializer):
         ]
     
     def get_passenger_name(self, obj):
-        """Return passenger full name."""
-        return f"{obj.passenger.first_name} {obj.passenger.last_name}"
+        return f"{obj.passenger_first_name} {obj.passenger_last_name}"
 
 
 class TicketDetailSerializer(serializers.ModelSerializer):
@@ -61,9 +60,8 @@ class TicketDetailSerializer(serializers.ModelSerializer):
     def get_passenger_details(self, obj):
         """Return passenger information."""
         return {
-            'name': f"{obj.passenger.first_name} {obj.passenger.last_name}",
-            'email': obj.passenger.email,
-            'passport': obj.passenger.passport_code,
+            'name': f"{obj.passenger_first_name} {obj.passenger_last_name}",
+            'passport': obj.passenger_passport_code,
         }
 
 

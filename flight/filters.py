@@ -34,6 +34,24 @@ class FlightFilterSet(FilterSet):
 
 class TicketFilterSet(FilterSet):
     
+    passenger_first_name = CharFilter(
+        field_name='passenger_first_name',
+        lookup_expr='icontains',
+        label='Passenger First Name'
+    )
+    
+    passenger_last_name = CharFilter(
+        field_name='passenger_last_name',
+        lookup_expr='icontains',
+        label='Passenger Last Name'
+    )
+    
+    passenger_passport_code = CharFilter(
+        field_name='passenger_passport_code',
+        lookup_expr='icontains',
+        label='Passenger Passport Code'
+    )
+    
     class Meta:
         model = Ticket
-        fields = ['flight', 'passenger']
+        fields = ['flight', 'order', 'status', 'ticket_class']
