@@ -8,7 +8,6 @@ from .flight import (
 from .ticket import (
     TicketListSerializer,
     TicketDetailSerializer,
-    TicketCreateSerializer,
     TicketUpdateSerializer,
 )
 
@@ -18,6 +17,5 @@ __all__ = [
     'FlightCreateUpdateSerializer',
     'TicketListSerializer',
     'TicketDetailSerializer',
-    'TicketCreateSerializer',
     'TicketUpdateSerializer',
 ]

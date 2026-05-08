@@ -14,7 +14,6 @@ from .serializers import (
     FlightCreateUpdateSerializer,
     TicketListSerializer,
     TicketDetailSerializer,
-    TicketCreateSerializer,
     TicketUpdateSerializer,
 )
 
@@ -41,7 +40,6 @@ class FlightViewSet(viewsets.ModelViewSet):
 
 class TicketListView(ListAPIView):
     permission_classes = [IsAuthenticated]
-    throttle_classes = [TicketBookThrottle]
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_class = TicketFilterSet
@@ -49,14 +47,31 @@ class TicketListView(ListAPIView):
     ordering = ['-id']
     
     def get_queryset(self):
-        if self.request.user.role == 'admin':
-            return Ticket.objects.select_related('flight')
-        return Ticket.objects.filter(order__customer=self.request.user)
+        user = self.request.user
+        queryset = Ticket.objects.select_related(
+            'flight',
+            'flight__airline',
+            'order',
+            'order__customer'
+        )
+
+        if user.is_staff:
+            return queryset
+        elif user.is_authenticated:
+            return queryset.filter(order__customer=user)
+        else:
+            return Ticket.objects.none()
     
     serializer_class = TicketListSerializer
     
 class TicketDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
+    
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return TicketUpdateSerializer
+        else:
+            return TicketDetailSerializer
     
     def get_queryset(self):
         if self.request.user.role == 'admin':
@@ -67,6 +82,7 @@ class OrderViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Gene
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+    throttle_classes = [TicketBookThrottle]
 
     def get_queryset(self):
         return Order.objects.filter(customer=self.request.user)

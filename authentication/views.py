@@ -93,3 +93,4 @@ class JWTVerifyView(APIView):
 class JWTRegisterView(CreateAPIView):
     permission_classes = [AllowAny]
     serializer_class = UserRegisterSerializer
+    throttle_classes = [AuthenticationThrottle]

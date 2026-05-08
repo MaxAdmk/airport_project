@@ -112,5 +112,13 @@ class Ticket(models.Model):
     baggage_weight = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=3, choices=Status.choices, default=Status.BOOKED)
     
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ['flight', 'seat_number'],
+                name = 'unique_seat_per_flight'
+            )
+        ]
+    
     def __str__(self):
         return f"Ticket {self.booking_reference} for {self.passenger_first_name} {self.passenger_last_name} on flight {self.flight.flight_number} ({self.get_status_display()})"
