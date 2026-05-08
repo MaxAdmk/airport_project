@@ -4,8 +4,9 @@ from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_401_UN
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
+from rest_framework.generics import CreateAPIView
 from django.contrib.auth import authenticate
-from .serializers import LoginSerializer, UserDetailSerializer
+from .serializers import LoginSerializer, UserDetailSerializer, UserRegisterSerializer
 from core.throttling import AuthenticationThrottle
 
 
@@ -88,3 +89,8 @@ class JWTVerifyView(APIView):
             return Response({'valid': True}, status=HTTP_200_OK)
         except (TokenError, InvalidToken, Exception):
             return Response({'valid': False}, status=HTTP_401_UNAUTHORIZED)
+
+class JWTRegisterView(CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = UserRegisterSerializer
+    throttle_classes = [AuthenticationThrottle]

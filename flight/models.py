@@ -50,6 +50,9 @@ class Flight(models.Model):
     status = models.CharField(max_length=3, choices=Status.choices, default=Status.SCHEDULED)
     terminal = models.CharField(max_length=10, null=True, blank=True)
     gate = models.CharField(max_length=10, null=True, blank=True)
+    price_economy = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
+    price_business = models.DecimalField(max_digits=10, decimal_places=2, default=250.00)
+    price_first_class = models.DecimalField(max_digits=10, decimal_places=2, default=500.00)
     
     def __str__(self):
         return f"{self.flight_number}: {self.departure_airport.iata_code} -> {self.destination_airport.iata_code} ({self.get_status_display()})"
@@ -59,12 +62,18 @@ class Flight(models.Model):
         """Calculate estimated arrival time from departure + duration."""
         return self.start_datetime + self.approximate_duration
     
+class Order(models.Model):
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    created_at = models.DateTimeField(auto_now_add=True)
+
 class Ticket(models.Model):
     """Represents a flight ticket/booking for a passenger.
     
     Attributes:
         booking_reference (str): Unique 6-character booking confirmation code.
-        passenger (ForeignKey): User who booked this ticket.
+        passenger_first_name (str): First name of the passenger.
+        passenger_last_name (str): Last name of the passenger.
+        passenger_passport_code (str): Passport code of the passenger.
         flight (ForeignKey): Associated flight.
         seat_number (str): Assigned seat (e.g., 12A).
         ticket_class (str): Cabin class (Economy, Business, First Class).
@@ -92,7 +101,10 @@ class Ticket(models.Model):
         db_index=True,
         help_text="Auto-generated 6-character booking reference (e.g., ABC123)"
     )
-    passenger = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='tickets')
+    passenger_first_name = models.CharField(max_length=50)
+    passenger_last_name = models.CharField(max_length=50)
+    passenger_passport_code = models.CharField(max_length=20)
     flight = models.ForeignKey(Flight, on_delete=models.CASCADE, related_name='tickets')
     seat_number = models.CharField(max_length=10)
     ticket_class = models.CharField(max_length=3, choices=TicketClass.choices, default=TicketClass.ECONOMY)
@@ -100,5 +112,13 @@ class Ticket(models.Model):
     baggage_weight = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=3, choices=Status.choices, default=Status.BOOKED)
     
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ['flight', 'seat_number'],
+                name = 'unique_seat_per_flight'
+            )
+        ]
+    
     def __str__(self):
-        return f"Ticket {self.booking_reference} for {self.passenger} on flight {self.flight.flight_number} ({self.get_status_display()})"
+        return f"Ticket {self.booking_reference} for {self.passenger_first_name} {self.passenger_last_name} on flight {self.flight.flight_number} ({self.get_status_display()})"
