@@ -65,6 +65,11 @@ class Flight(models.Model):
 class Order(models.Model):
     customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     created_at = models.DateTimeField(auto_now_add=True)
+    is_paid = models.BooleanField(default=False)
+    
+    def __str__(self):
+        status = "Paid" if self.is_paid else "Pending"
+        return f"Order {self.id} by {self.customer.email} ({status})"
 
 class Ticket(models.Model):
     """Represents a flight ticket/booking for a passenger.
