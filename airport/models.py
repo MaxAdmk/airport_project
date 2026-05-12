@@ -1,4 +1,7 @@
+import string
+
 from django.db import models
+from django.core.validators import MaxValueValidator
 
 class Airline(models.Model):
     """Represents an airline company.
@@ -40,16 +43,28 @@ class Airplane(models.Model):
     Attributes:
         model_name (str): Aircraft model (e.g., Boeing 737).
         tail_number (str): Unique aircraft registration number.
-        num_of_passengers (int): Maximum number of passengers.
+        rows (int): Number of seat rows.
+        seats_in_row (int): Number of seats per row.
         crew_amount (int): Required number of crew members.
         airline (ForeignKey): Airline that owns this aircraft.
     """
+    MAX_SEATS_PER_ROW = len(string.ascii_uppercase)
     
     model_name = models.CharField(max_length=50)
     tail_number = models.CharField(max_length=20, unique=True)
-    num_of_passengers = models.PositiveIntegerField()
+    rows = models.PositiveIntegerField()
+    seats_in_row = models.PositiveIntegerField(validators=[MaxValueValidator(MAX_SEATS_PER_ROW)])
     crew_amount = models.PositiveIntegerField()
     airline = models.ForeignKey(Airline, on_delete=models.CASCADE, related_name='airplanes')
     
     def __str__(self):
         return f"{self.model_name} ({self.tail_number})"
+    
+    @property
+    def valid_seat_letters(self):
+        return list(string.ascii_uppercase[:self.seats_in_row])
+    
+    @property
+    def num_of_passengers(self):
+        """Calculates total passenger capacity based on rows and seats."""
+        return self.rows * self.seats_in_row

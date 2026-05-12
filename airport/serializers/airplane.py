@@ -16,6 +16,8 @@ class AirplaneListSerializer(serializers.ModelSerializer):
         read_only=True
     )
     
+    num_of_passengers = serializers.ReadOnlyField()
+    
     class Meta:
         model = Airplane
         fields = ['id', 'model_name', 'tail_number', 'airline_name', 'num_of_passengers']
@@ -27,6 +29,8 @@ class AirplaneDetailSerializer(serializers.ModelSerializer):
     
     Returns all aircraft information including crew and airline details.
     """
+    
+    num_of_passengers = serializers.ReadOnlyField()
     
     class Meta:
         model = Airplane
@@ -44,7 +48,10 @@ class AirplaneCreateUpdateSerializer(serializers.ModelSerializer):
     
     Used for: POST, PUT, PATCH operations (admin only)
     """
-    num_of_passengers = serializers.IntegerField(
+    rows = serializers.IntegerField(
+        validators=[validate_positive_integer]
+    )
+    seats_in_row = serializers.IntegerField(
         validators=[validate_positive_integer]
     )
     crew_amount = serializers.IntegerField(
@@ -53,4 +60,4 @@ class AirplaneCreateUpdateSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Airplane
-        fields = ['model_name', 'tail_number', 'num_of_passengers', 'crew_amount', 'airline']
+        fields = ['model_name', 'tail_number', 'rows', 'seats_in_row', 'crew_amount', 'airline']
