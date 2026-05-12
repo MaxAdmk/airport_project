@@ -93,6 +93,7 @@ class Ticket(models.Model):
         PAID = 'PAI', 'Paid'
         CHECKED_IN = 'CHK', 'Checked-in'
         CANCELLED = 'CAN', 'Cancelled'
+        EXPIRED = 'EXP', 'Expired'
     
     class TicketClass(models.TextChoices):
         ECONOMY = 'ECO', 'Economy'
@@ -122,7 +123,7 @@ class Ticket(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields = ['flight', 'seat_number'],
-                condition=~Q(status__in=['CAN']),
+                condition=~Q(status__in=['CAN', 'EXP']),
                 name = 'unique_seat_per_flight'
             )
         ]

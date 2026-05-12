@@ -46,7 +46,7 @@ class FlightViewSet(viewsets.ModelViewSet):
 
         booked_seats = set(
             Ticket.objects.filter(flight=flight)
-            .exclude(status=Ticket.Status.CANCELLED)
+            .exclude(status__in=[Ticket.Status.CANCELLED, Ticket.Status.EXPIRED])
             .values_list('seat_number', flat=True)
         )
 
