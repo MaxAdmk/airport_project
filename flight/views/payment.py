@@ -1,5 +1,6 @@
 import stripe
 import logging
+import time
 from django.conf import settings
 from django.http import HttpResponse
 from rest_framework.views import APIView, csrf_exempt
@@ -38,6 +39,9 @@ class CreateStripeCheckoutSessionView(APIView):
             })
 
         DOMAIN = settings.BASE_URL
+        
+        timeout_seconds = settings.STRIPE_CHECKOUT_TIMEOUT_MINUTES * 60
+        expiration_time = int(time.time()) + timeout_seconds
 
         try:
             checkout_session = stripe.checkout.Session.create(
@@ -46,7 +50,8 @@ class CreateStripeCheckoutSessionView(APIView):
                 mode='payment',
                 success_url=DOMAIN + '/api/flight/success/',
                 cancel_url=DOMAIN + '/api/flight/cancel/',
-                client_reference_id=str(order.id) 
+                client_reference_id=str(order.id),
+                expires_at=expiration_time
             )
 
             return Response({'checkout_url': checkout_session.url})
@@ -120,6 +125,21 @@ def stripe_webhook(request):
                     
             except Order.DoesNotExist:
                 logger.error(f"Error: Order with ID {order_id} was not found in DB.")
+    elif event['type'] == 'checkout.session.expired':
+        session = event['data']['object']
+        order_id = session.client_reference_id
+        
+        if order_id:
+            try:
+                with transaction.atomic():
+                    order = Order.objects.get(id=order_id)
+                    
+                    if not order.is_paid:
+                        order.tickets.update(status=Ticket.Status.EXPIRED)
+                        logger.info(f"Order {order_id} EXPIRED due to timeout. Tickets released.")
+                        
+            except Order.DoesNotExist:
+                logger.error(f"Error: Expired Order with ID {order_id} was not found.")
 
     return HttpResponse(status=200)
 
