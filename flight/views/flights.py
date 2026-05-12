@@ -22,7 +22,7 @@ class FlightViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = FlightFilterSet
     search_fields = ['airline__name', 'departure_airport__name', 'destination_airport__name']
-    ordering_fields = ['start_datetime', 'arrival_time', 'status']
+    ordering_fields = ['start_datetime', 'status']
     ordering = ['-start_datetime']
     
     def get_serializer_class(self):

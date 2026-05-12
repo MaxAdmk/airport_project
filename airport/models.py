@@ -1,6 +1,7 @@
 import string
 
 from django.db import models
+from django.core.validators import MaxValueValidator
 
 class Airline(models.Model):
     """Represents an airline company.
@@ -47,11 +48,12 @@ class Airplane(models.Model):
         crew_amount (int): Required number of crew members.
         airline (ForeignKey): Airline that owns this aircraft.
     """
+    MAX_SEATS_PER_ROW = len(string.ascii_uppercase)
     
     model_name = models.CharField(max_length=50)
     tail_number = models.CharField(max_length=20, unique=True)
     rows = models.PositiveIntegerField()
-    seats_in_row = models.PositiveIntegerField()
+    seats_in_row = models.PositiveIntegerField(validators=[MaxValueValidator(MAX_SEATS_PER_ROW)])
     crew_amount = models.PositiveIntegerField()
     airline = models.ForeignKey(Airline, on_delete=models.CASCADE, related_name='airplanes')
     

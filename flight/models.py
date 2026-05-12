@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 import uuid
 import string
@@ -121,6 +122,7 @@ class Ticket(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields = ['flight', 'seat_number'],
+                condition=~Q(status__in=['CAN']),
                 name = 'unique_seat_per_flight'
             )
         ]

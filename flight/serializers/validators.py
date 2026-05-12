@@ -40,8 +40,9 @@ def validate_seat_existance_in_airplane(seat_number, airplane):
     inside the airplane.
     """
     if not airplane:
-        return
-        
+        raise serializers.ValidationError(
+            "Cannot book tickets for this flight yet, as no airplane has been assigned."
+        )
     try:
         row_num = int("".join([char for char in seat_number if char.isdigit()]))
         seat_letter = "".join([char for char in seat_number if char.isalpha()]).upper()

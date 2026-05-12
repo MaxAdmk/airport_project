@@ -32,6 +32,8 @@ class TicketOrderItemSerializer(serializers.ModelSerializer):
         seat_taken = Ticket.objects.filter(
             flight=flight,
             seat_number=seat
+        ).exclude(
+            status__in=[Ticket.Status.CANCELLED]
         ).exists()
         
         if seat_taken:
